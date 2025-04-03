@@ -1,5 +1,6 @@
 import express from "express";
 import env from "./config/dotenv";
+import logger from "./config/logger";
 
 const app = express();
 const PORT = env.PORT || 5501;
@@ -14,6 +15,5 @@ app.get("/", (req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running at http://localhost:${PORT}`);
+  logger.log("info", `Server is running on http://localhost:${PORT}`);
 });
