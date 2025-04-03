@@ -1,7 +1,8 @@
 import express from "express";
+import env from "./config/dotenv";
 
 const app = express();
-const PORT = 3000;
+const PORT = env.PORT || 5501;
 
 // Middleware
 app.use(express.json());
