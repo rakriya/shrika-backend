@@ -35,27 +35,35 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   const requestPath = req.path;
   const requestId = (req as Request & { id?: string }).id || "N/A";
 
-  // Log the full error stack for debugging
-  logger.error(
-    JSON.stringify({
-      level: "error",
-      statusCode,
-      type: errorType,
-      message: errorMessage,
-      path: requestPath,
-      requestID: requestId,
-      timestamp: new Date().toISOString(),
-    }),
-  );
-
-  res.status(statusCode).json({
+  const errorResponse: any = {
     error: {
       type: errorType,
       message: errorMessage,
       path: requestPath,
       timestamp: new Date().toISOString(),
     },
-  });
+  };
+
+  // 🔹 Include validation error details if available
+  if ((err as any).details) {
+    errorResponse.error.details = (err as any).details;
+  }
+
+  // Log the error
+  logger.error(
+    JSON.stringify({
+      level: "error",
+      statusCode,
+      type: errorType,
+      message: errorMessage,
+      details: errorResponse.error.details || null,
+      path: requestPath,
+      requestID: requestId,
+      timestamp: new Date().toISOString(),
+    }),
+  );
+
+  res.status(statusCode).json(errorResponse);
 });
 
 export default app;
