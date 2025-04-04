@@ -1,23 +1,19 @@
 import express from "express";
 import env from "./config/dotenv";
 import logger from "./config/logger";
-import { PrismaClient } from "@prisma/client";
+import societyRoutes from "./routes/societyRoute";
 
 const app = express();
 const PORT = env.PORT || 5501;
-const prisma = new PrismaClient();
 
 // Middleware
 app.use(express.json());
 
+app.use("/api/v1/society", societyRoutes);
+
 // Routes
 app.get("/", async (_req, res) => {
-  await prisma.user.create({
-    data: { name: "Alice", email: "alice@example.com" },
-  });
-
-  const users = await prisma.user.findMany();
-  res.json({ message: "Welcome to Shrika backend", users });
+  res.json({ message: "Welcome to Shrika backend" });
 });
 
 // Start Server
