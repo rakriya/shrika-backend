@@ -34,10 +34,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "@types/http-errors": "^2.0.4",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
     "express": "^5.1.0",
+    "express-request-id": "^3.0.0",
+    "http-errors": "^2.0.0",
     "winston": "^3.17.0"
   }
 }
