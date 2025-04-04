@@ -1,22 +1,22 @@
-import express from "express";
+import app from "./app";
 import env from "./config/dotenv";
 import logger from "./config/logger";
-import societyRoutes from "./routes/societyRoute";
 
-const app = express();
-const PORT = env.PORT || 5501;
+const startServer = async () => {
+  const PORT = env.PORT || 5500;
 
-// Middleware
-app.use(express.json());
+  try {
+    app.listen(PORT, () => {
+      logger.info(`Server is running on port ${PORT}..`);
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      logger.error(`Failed to start the server: ${error.message}`);
+      setTimeout(() => {
+        process.exit(1);
+      }, 1000);
+    }
+  }
+};
 
-app.use("/api/v1/society", societyRoutes);
-
-// Routes
-app.get("/", async (_req, res) => {
-  res.json({ message: "Welcome to Shrika backend" });
-});
-
-// Start Server
-app.listen(PORT, () => {
-  logger.log("info", `Server is running on http://localhost:${PORT}`);
-});
+void startServer();
