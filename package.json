@@ -10,7 +10,9 @@
     "format:fix": "prettier . --write",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prisma:dev": "npx prisma migrate dev",
+    "prisma:prod": "npx prisma migrate deploy"
   },
   "author": "",
   "license": "ISC",
@@ -26,10 +28,12 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.3",
+    "prisma": "^6.5.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@prisma/client": "^6.5.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
