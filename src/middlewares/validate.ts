@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import { ObjectSchema } from "joi";
 import createHttpError from "http-errors";
 
-export const validate = (schema: ObjectSchema): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): void => {
+export const validate = (schema: ObjectSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.validate(req.body, { abortEarly: false });
 
     if (error) {

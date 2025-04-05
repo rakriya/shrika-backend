@@ -4,7 +4,13 @@ import logger from "../config/logger";
 import createHttpError from "http-errors";
 const prisma = new PrismaClient();
 
-export const createSociety = async (req: Request, res: Response, next: NextFunction) => {
+interface ff extends Request {
+  body: {
+    name: string;
+  };
+}
+
+export const createSociety = async (req: ff, res: Response, next: NextFunction) => {
   try {
     const { name } = req.body;
 
