@@ -4,6 +4,7 @@ import { societyCreateSchema } from "../joiSchemas/societySchema";
 import { validate } from "../middlewares/validate";
 import { commonUploader, validateAllFiles } from "../middlewares/multer";
 import { createMember } from "../controllers/memberController";
+import { memberCreateSchema } from "../joiSchemas/memberSchema";
 
 const router = express.Router();
 
@@ -18,6 +19,6 @@ router.get("/", getAllSocieties);
 router.get("/:id", getSocietyById);
 
 // Nested: Create a member for a specific society
-router.post("/:societyId/members", createMember);
+router.post("/:societyId/members", validate(memberCreateSchema), createMember);
 
 export default router;

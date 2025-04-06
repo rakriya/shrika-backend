@@ -13,7 +13,7 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Check if society already exists
-    const society = await prisma.member.findUnique({ where: { id: societyId } });
+    const society = await prisma.society.findUnique({ where: { id: societyId } });
     if (!society) {
       return next(createHttpError(400, `No society found with the provided ID: ${societyId}.`));
     }
