@@ -33,7 +33,7 @@ export const createSociety = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const getSocieties = async (req: Request, res: Response) => {
+export const getAllSocieties = async (req: Request, res: Response) => {
   try {
     // Logic to fetch all societies from the database
     const societies = await prisma.society.findMany();
@@ -43,14 +43,14 @@ export const getSocieties = async (req: Request, res: Response) => {
   }
 };
 
-export const getSocietyById = async (req: Request, res: Response) => {
+export const getSocietyById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
     // Logic to fetch a society by ID from the database
     const society = await prisma.society.findUnique({ where: { id } });
     if (!society) {
-      return res.status(404).json({ message: "Society not found" });
+      return next(createHttpError(400, `No society found with the provided ID: ${id}.`));
     }
     res.status(200).json(society);
   } catch (error) {

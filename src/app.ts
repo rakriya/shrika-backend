@@ -19,7 +19,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(requestId());
-app.use("/api/v1/society", societyRoutes);
+app.use("/api/v1/societies", societyRoutes);
 
 // Routes
 app.get("/", async (_req, res) => {
