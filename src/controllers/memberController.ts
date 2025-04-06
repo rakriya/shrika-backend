@@ -2,14 +2,25 @@ import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import prisma from "../config/prisma";
 import logger from "../config/logger";
+import { isValidPermissions } from "../utils/validateValidPermissions";
+import { ALLOWED_PERMISSIONS } from "../constants";
 
 export const createMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { societyId } = req.params;
-    const { name, email, password, cpassword, phoneNumber } = req.body;
+    const { name, email, password, cpassword, phoneNumber, customPermissions } = req.body;
 
     if (password !== cpassword) {
       return next(createHttpError(400, "Password and Confirm Password do not match."));
+    }
+
+    const isCustomPermissionsEnabled =
+      Array.isArray(customPermissions) && customPermissions.length > 0;
+
+    if (isCustomPermissionsEnabled && !isValidPermissions(customPermissions)) {
+      return next(
+        createHttpError(400, `Permissions must be from: ${ALLOWED_PERMISSIONS.join(", ")}`),
+      );
     }
 
     // Check if society already exists
@@ -36,10 +47,20 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
 
     // Logic to create a new society in the database
     const newMember = await prisma.member.create({
-      data: { name, email, password, phoneNumber, society: { connect: { id: society.id } } },
+      data: {
+        name,
+        email,
+        password,
+        phoneNumber,
+        isCustomPermissionsEnabled,
+        customPermissions,
+        society: { connect: { id: society.id } },
+      },
     });
 
-    logger.info(`✅ Member "${newMember.name}" created in society "${society.name}".`);
+    logger.info(
+      `✅ Member "${newMember.name}" (Phone: ${newMember.phoneNumber}) created in society "${society.name}".`,
+    );
 
     res.status(201).json({ message: `Member created successfully in ${society.name}`, newMember });
   } catch (error) {

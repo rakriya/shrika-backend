@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { ALLOWED_PERMISSIONS } from "../constants";
 
 export const memberCreateSchema = Joi.object({
   name: Joi.string().min(3).max(50).required().messages({
@@ -34,4 +35,6 @@ export const memberCreateSchema = Joi.object({
     "any.only": "Confirm password must match the password.",
     "string.empty": "Confirm password is required.",
   }),
+
+  customPermissions: Joi.array().items(Joi.string().valid(...ALLOWED_PERMISSIONS)),
 }).with("password", "cpassword");
