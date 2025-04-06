@@ -3,7 +3,8 @@ import createHttpError from "http-errors";
 import prisma from "../config/prisma";
 import logger from "../config/logger";
 import { isValidPermissions } from "../utils/validateValidPermissions";
-import { ALLOWED_PERMISSIONS } from "../constants";
+import { ALLOWED_PERMISSIONS, SALT_ROUNDS } from "../constants";
+import { getBcrypt } from "../config/bcrypt";
 
 export const createMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -45,12 +46,15 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
       );
     }
 
+    const bcrypt = await getBcrypt();
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     // Logic to create a new society in the database
     const newMember = await prisma.member.create({
       data: {
         name,
         email,
-        password,
+        password: hashedPassword,
         phoneNumber,
         isCustomPermissionsEnabled,
         customPermissions,
