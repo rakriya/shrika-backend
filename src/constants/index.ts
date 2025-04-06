@@ -9,4 +9,14 @@ const MAX_FILE_SIZE_LIMITS: { [key: string]: number } = {
 const ALLOWED_MIMETYPES = Object.keys(MAX_FILE_SIZE_LIMITS);
 const MAX_NUMBER_FILE = 15;
 
-export { ALLOWED_MIMETYPES, MAX_FILE_SIZE_LIMITS, MAX_NUMBER_FILE };
+const ALLOWED_PERMISSIONS = [
+  "read_members",
+  "update_members",
+  "delete_members",
+  "manage_loans",
+  "view_reports",
+] as const;
+
+export type Permission = (typeof ALLOWED_PERMISSIONS)[number];
+
+export { ALLOWED_MIMETYPES, MAX_FILE_SIZE_LIMITS, MAX_NUMBER_FILE, ALLOWED_PERMISSIONS };

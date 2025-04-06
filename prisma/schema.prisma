@@ -11,6 +11,7 @@ model Society {
   id            String      @id @default(uuid())
   name          String      @unique
   members       Member[]
+  roles         Role[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
@@ -21,6 +22,19 @@ model Member {
   phoneNumber   String      
   email         String?     
   password      String
+  roleId        String?
+  role          Role?       @relation(fields: [roleId], references: [id])
+  societyId     String
+  society       Society     @relation(fields: [societyId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Role {
+  id            String      @id @default(uuid())
+  name          String      
+  permissions   String[]    // e.g., ["read_members", "update_members"]
+  members       Member[]
   societyId     String
   society       Society     @relation(fields: [societyId], references: [id])
   createdAt     DateTime    @default(now())
