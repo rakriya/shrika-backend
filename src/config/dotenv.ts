@@ -10,6 +10,13 @@ export const env = cleanEnv(process.env, {
     default: "development",
     choices: ["production", "development"],
   }),
+  REDIS_HOST: str(),
+  REDIS_PORT: port(),
+  REDIS_PASSWORD: str(),
+
+  TWILIO_ACCOUNT_SID: str(),
+  TWILIO_AUTH_TOKEN: str(),
+  TWILIO_PHONE_NUMBER: str(),
 });
 
 export default env;

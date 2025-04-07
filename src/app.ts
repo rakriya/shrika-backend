@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import requestId from "express-request-id";
 import societyRoutes from "./routes/societyRoute";
+import authRoute from "./routes/authRoute";
 import logger from "./config/logger";
 import { HttpError } from "http-errors";
 
@@ -20,6 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(requestId());
 app.use("/api/v1/societies", societyRoutes);
+app.use("/api/v1/auth", authRoute);
 
 // Routes
 app.get("/", async (_req, res) => {
