@@ -9,33 +9,55 @@ import { getBcrypt } from "../config/bcrypt";
 export const createMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { societyId } = req.params;
-    const { name, email, password, cpassword, phoneNumber, customPermissions } = req.body;
+    const {
+      name,
+      email,
+      password,
+      cpassword,
+      phoneNumber,
+      customPermissions = [],
+      roleTemplateId,
+    } = req.body;
 
+    // Validate password match
     if (password !== cpassword) {
       return next(createHttpError(400, "Password and Confirm Password do not match."));
     }
 
-    const isCustomPermissionsEnabled =
-      Array.isArray(customPermissions) && customPermissions.length > 0;
+    // Check permission source
+    const isCustomPermissionsEnabled = customPermissions.length > 0;
 
+    if (!isCustomPermissionsEnabled && !roleTemplateId) {
+      return next(
+        createHttpError(400, "Member must have either a custom permission set or a role template."),
+      );
+    }
+
+    // Validate custom permissions if provided
     if (isCustomPermissionsEnabled && !isValidPermissions(customPermissions)) {
       return next(
         createHttpError(400, `Permissions must be from: ${ALLOWED_PERMISSIONS.join(", ")}`),
       );
     }
 
-    // Check if society already exists
+    // Load role if needed
+    let role = null;
+    if (!isCustomPermissionsEnabled && roleTemplateId) {
+      role = await prisma.role.findUnique({ where: { id: roleTemplateId } });
+      if (!role) {
+        return next(createHttpError(400, `No role found with the provided ID: ${roleTemplateId}.`));
+      }
+    }
+
+    // Check if society exists
     const society = await prisma.society.findUnique({ where: { id: societyId } });
     if (!society) {
       return next(createHttpError(400, `No society found with the provided ID: ${societyId}.`));
     }
 
-    // Check if the member already exists in this society byphone number
+    // Check for duplicate phone number
     const existingMember = await prisma.member.findFirst({
-      where: {
-        phoneNumber,
-        societyId,
-      },
+      where: { phoneNumber, societyId },
     });
     if (existingMember) {
       return next(
@@ -46,10 +68,11 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
       );
     }
 
+    // Hash password
     const bcrypt = await getBcrypt();
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Logic to create a new society in the database
+    // Create member
     const newMember = await prisma.member.create({
       data: {
         name,
@@ -59,6 +82,7 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
         isCustomPermissionsEnabled,
         customPermissions,
         society: { connect: { id: society.id } },
+        ...(role && { role: { connect: { id: role.id } } }),
       },
     });
 
@@ -66,7 +90,10 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
       `✅ Member "${newMember.name}" (Phone: ${newMember.phoneNumber}) created in society "${society.name}".`,
     );
 
-    res.status(201).json({ message: `Member created successfully in ${society.name}`, newMember });
+    res.status(201).json({
+      message: `Member "${newMember.name}" created successfully in "${society.name}"`,
+      newMember,
+    });
   } catch (error) {
     return next(error);
   }

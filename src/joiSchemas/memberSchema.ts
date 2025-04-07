@@ -36,5 +36,7 @@ export const memberCreateSchema = Joi.object({
     "string.empty": "Confirm password is required.",
   }),
 
+  roleTemplateId: Joi.string(),
+
   customPermissions: Joi.array().items(Joi.string().valid(...ALLOWED_PERMISSIONS)),
 }).with("password", "cpassword");
