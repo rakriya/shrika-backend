@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import requestId from "express-request-id";
 import societyRoutes from "./routes/societyRoute";
 import authRoute from "./routes/authRoute";
+import otpRoute from "./routes/otpRoute";
 import logger from "./config/logger";
 import { HttpError } from "http-errors";
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(requestId());
 app.use("/api/v1/societies", societyRoutes);
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/otp", otpRoute);
 
 // Routes
 app.get("/", async (_req, res) => {
