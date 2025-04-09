@@ -46,8 +46,8 @@ const OTP_BODY = `Your OTP code is: $otp | This code is valid for $duration minu
 
 // If you didn’t request this, please ignore this message.`;
 
-const COOKIE_REFRESH_TOKEN_NAME = "shirka-refresh-token";
-const COOKIE_ACCESS_TOKEN_NAME = "shirka-access-token";
+const COOKIE_REFRESH_TOKEN_NAME = "shrika-refresh-token";
+const COOKIE_ACCESS_TOKEN_NAME = "shrika-access-token";
 
 export {
   ALLOWED_MIMETYPES,

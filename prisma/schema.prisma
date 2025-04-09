@@ -46,9 +46,9 @@ model Role {
 
 model RefreshToken {
   id              String           @id @default(uuid())
-  expiresAt       DateTime?
-  userAgent       String?
-  ipAddress       String?
+  expiresAt       DateTime
+  userAgent       String
+  ipAddress       String
 
   createdAt       DateTime      @default(now())
 

@@ -35,9 +35,17 @@ export const saveRefreshToken = async ({
       memberId,
       userAgent,
       ipAddress,
-      expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS),
+      expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
     },
   });
 
   return newToken;
+};
+
+export const deleteRefreshToken = async (id: string) => {
+  try {
+    await prisma.refreshToken.delete({ where: { id } });
+  } catch (err) {
+    throw new Error(`Error to delete refresh token entity for Id: ${id} Error: ${err}`);
+  }
 };

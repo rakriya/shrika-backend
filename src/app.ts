@@ -5,6 +5,7 @@ import authRoute from "./routes/authRoute";
 import otpRoute from "./routes/otpRoute";
 import logger from "./config/logger";
 import { HttpError } from "http-errors";
+import cookieParser from "cookie-parser";
 
 process.on("uncaughtException", (err) => {
   logger.error(`Uncaught Exception: ${err.message}`);
@@ -22,6 +23,7 @@ app.set("trust proxy", true);
 // Middleware
 app.use(express.json());
 app.use(requestId());
+app.use(cookieParser());
 app.use("/api/v1/societies", societyRoutes);
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/otp", otpRoute);
