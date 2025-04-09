@@ -17,6 +17,7 @@ import {
   saveRefreshToken,
 } from "../services/tokenService";
 import env from "../config/dotenv";
+import { generateNormalizeIp } from "../utils/getNormalizeIp";
 
 export const loginMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -64,13 +65,7 @@ export const loginMember = async (req: Request, res: Response, next: NextFunctio
     const accessToken = generateAccessToken({ payload });
 
     const userAgent = req.headers["user-agent"] || "unknown";
-    const normalizeIP = (ip: string) => (ip === "::1" ? "127.0.0.1" : ip);
-    const ipAddress = normalizeIP(
-      req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || // Prod via Nginx
-        req.socket.remoteAddress || // Dev directly
-        "",
-    );
-
+    const ipAddress = generateNormalizeIp(req);
     const isProd = env.NODE_ENV === "production";
 
     if (
