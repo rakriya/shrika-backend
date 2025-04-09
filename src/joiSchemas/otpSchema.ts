@@ -20,4 +20,4 @@ export const sendOtpSchema = Joi.object({
       "string.empty": "OTP purpose is required.",
       "string.equal": `OTP purpose must be from: ${Object.values(OTP_PURPOSE).join(", ")}.`,
     }),
-});
+}).xor("phoneNumber", "memberId");

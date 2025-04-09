@@ -38,12 +38,16 @@ const OTP_LENGTH = 6;
 const OTP_EXPIREY_IN_MINUTES = 15;
 const OTP_CONTENT = "01234567879";
 
-const LOGIN_OTP_BODY = `🔐 Shrika CRM OTP Verification
+const OTP_BODY = `Your OTP code is: $otp | This code is valid for $duration minutes.`;
+// const OTP_BODY = `🔐 Shrika CRM OTP Verification
 
-Your OTP code is: $otp 
-This code is valid for $duration minutes. Don’t share with anyone.
+// Your OTP code is: $otp
+// This code is valid for $duration minutes. Don’t share with anyone.
 
-If you didn’t request this, please ignore this message.`;
+// If you didn’t request this, please ignore this message.`;
+
+const COOKIE_REFRESH_TOKEN_NAME = "shirka-refresh-token";
+const COOKIE_ACCESS_TOKEN_NAME = "shirka-access-token";
 
 export {
   ALLOWED_MIMETYPES,
@@ -56,5 +60,7 @@ export {
   OTP_LENGTH,
   OTP_CONTENT,
   OTP_EXPIREY_IN_MINUTES,
-  LOGIN_OTP_BODY,
+  OTP_BODY,
+  COOKIE_ACCESS_TOKEN_NAME,
+  COOKIE_REFRESH_TOKEN_NAME,
 };

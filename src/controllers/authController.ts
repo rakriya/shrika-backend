@@ -2,52 +2,46 @@ import { NextFunction, Request, Response } from "express";
 import prisma from "../config/prisma";
 import createHttpError from "http-errors";
 import { getBcrypt } from "../config/bcrypt";
-import { createOtp, findOtp, updateOtpStatus } from "../services/otpService";
-import { LOGIN_OTP_BODY, OTP_EXPIREY_IN_MINUTES, OTP_PURPOSE, OTP_STATUS } from "../constants";
-import { sendMessage } from "../utils/sendMessage";
+import { findOtp, updateOtpStatus } from "../services/otpService";
+import {
+  COOKIE_ACCESS_TOKEN_NAME,
+  COOKIE_REFRESH_TOKEN_NAME,
+  OTP_PURPOSE,
+  OTP_STATUS,
+} from "../constants";
+import logger from "../config/logger";
+import { JwtPayload } from "jsonwebtoken";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  saveRefreshToken,
+} from "../services/tokenService";
+import env from "../config/dotenv";
 
 export const loginMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { phoneNumber, password, societyId } = req.body;
+    const { phoneNumber, password, societyId, otp } = req.body;
 
     const member = await prisma.member.findFirst({
       where: { phoneNumber, societyId },
       omit: { password: false },
+      include: { role: true },
     });
     if (!member) {
-      return next(createHttpError(400, `Wrong Credencials.`));
+      return next(createHttpError(400, `Wrong Credentials.`));
     }
 
     const bcrypt = await getBcrypt();
     const isPasswordMatched = await bcrypt.compare(password, member.password);
     if (!isPasswordMatched) {
-      return next(createHttpError(400, `Wrong Credencials.`));
+      return next(createHttpError(400, `Wrong Credentials.`));
     }
 
-    const otp = await createOtp({
+    const foundOtp = await findOtp({
       phoneNumber,
       purpose: OTP_PURPOSE.LOGIN,
+      societyId,
     });
-
-    await sendMessage({
-      body: LOGIN_OTP_BODY.replace("$otp", otp).replace(
-        "$duration",
-        String(OTP_EXPIREY_IN_MINUTES),
-      ),
-      to: `+91${phoneNumber}`,
-    });
-
-    res.json({ message: "Otp is sent to your phone number sucessfully", otp });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const verifyLoginOtp = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { phoneNumber, otp } = req.body;
-
-    const foundOtp = await findOtp({ phoneNumber, purpose: OTP_PURPOSE.LOGIN });
 
     if (foundOtp.status === OTP_STATUS.USED) {
       return next(createHttpError(400, `Otp is already used.`));
@@ -61,11 +55,54 @@ export const verifyLoginOtp = async (req: Request, res: Response, next: NextFunc
       return next(createHttpError(400, `Wrong otp.`));
     }
 
-    await updateOtpStatus({ phoneNumber, purpose: OTP_PURPOSE.LOGIN });
+    await updateOtpStatus({ phoneNumber, purpose: OTP_PURPOSE.LOGIN, societyId });
 
-    // todo : create jwt token and save into cookie
+    const payload: JwtPayload = {
+      sub: member.id,
+    };
 
-    res.json({ message: "Member logged in successfully", otp });
+    const accessToken = generateAccessToken({ payload });
+
+    const userAgent = req.headers["user-agent"] || "unknown";
+    const normalizeIP = (ip: string) => (ip === "::1" ? "127.0.0.1" : ip);
+    const ipAddress = normalizeIP(
+      req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || // Prod via Nginx
+        req.socket.remoteAddress || // Dev directly
+        "",
+    );
+
+    const isProd = env.NODE_ENV === "production";
+
+    if (
+      isProd &&
+      (ipAddress.startsWith("192.168.") ||
+        ipAddress.startsWith("10.") ||
+        ipAddress.startsWith("172."))
+    ) {
+      return next(createHttpError(400, `Possible internal IP detected`));
+    }
+
+    const newRefreshToken = await saveRefreshToken({ userAgent, ipAddress, memberId: member.id });
+    const refreshToken = generateRefreshToken({ payload: { ...payload, id: newRefreshToken.id } });
+
+    res.cookie(COOKIE_ACCESS_TOKEN_NAME, accessToken, {
+      httpOnly: true,
+      domain: isProd ? env.COOKIE_DOMAIN : undefined,
+      sameSite: "strict",
+      secure: isProd,
+      maxAge: env.ACCESS_TOKEN_EXPIRY_MINUTES * 60 * 1000,
+    });
+
+    res.cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken, {
+      httpOnly: true,
+      domain: isProd ? env.COOKIE_DOMAIN : undefined,
+      sameSite: "strict",
+      secure: isProd,
+      maxAge: env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    });
+
+    logger.info(`User with Id: ${member.id} Logged In Successfully`);
+    res.json({ message: "User Logged In Successfully" });
   } catch (error) {
     next(error);
   }

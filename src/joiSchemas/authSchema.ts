@@ -12,13 +12,6 @@ export const loginSchema = Joi.object({
   societyId: Joi.string().required().messages({
     "string.empty": "SocietyID is required.",
   }),
-});
-
-export const verifyLoginOtpSchema = Joi.object({
-  phoneNumber: Joi.string().required().messages({
-    "string.pattern.base": "Phone number must have exactly 10 digits.",
-    "string.empty": "Phone number is required.",
-  }),
   otp: Joi.string()
     .min(OTP_LENGTH)
     .max(OTP_LENGTH)

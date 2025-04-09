@@ -17,6 +17,7 @@ process.on("unhandledRejection", (reason) => {
 });
 
 const app = express();
+app.set("trust proxy", true);
 
 // Middleware
 app.use(express.json());

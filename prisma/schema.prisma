@@ -24,6 +24,7 @@ model Member {
   password                        String
   isCustomPermissionsEnabled      Boolean     @default(false)
   customPermissions               String[]    @default([])    // e.g., ["read_members", "update_members"]
+  refreshToken                    RefreshToken? 
   roleId                          String?
   role                            Role?       @relation(fields: [roleId], references: [id])
   societyId                       String
@@ -41,4 +42,16 @@ model Role {
   society       Society     @relation(fields: [societyId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+model RefreshToken {
+  id              String           @id @default(uuid())
+  expiresAt       DateTime?
+  userAgent       String?
+  ipAddress       String?
+
+  createdAt       DateTime      @default(now())
+
+  member          Member        @relation(fields: [memberId], references: [id])
+  memberId        String        @unique
 }
