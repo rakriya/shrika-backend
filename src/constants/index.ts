@@ -10,6 +10,7 @@ const ALLOWED_MIMETYPES = Object.keys(MAX_FILE_SIZE_LIMITS);
 const MAX_NUMBER_FILE = 15;
 
 const ALLOWED_PERMISSIONS = [
+  "create_member",
   "read_members",
   "update_members",
   "delete_members",

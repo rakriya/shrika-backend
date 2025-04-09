@@ -1,14 +1,20 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import prisma from "../config/prisma";
 import logger from "../config/logger";
 import { isValidPermissions } from "../utils/validateValidPermissions";
 import { ALLOWED_PERMISSIONS, SALT_ROUNDS } from "../constants";
 import { getBcrypt } from "../config/bcrypt";
+import { IAuthRequest } from "../types";
 
-export const createMember = async (req: Request, res: Response, next: NextFunction) => {
+export const createMember = async (req: IAuthRequest, res: Response, next: NextFunction) => {
   try {
     const { societyId } = req.params;
+
+    if (req.member.societyId !== societyId) {
+      return next(createHttpError(403, "You can't create a member in another society."));
+    }
+
     const {
       name,
       email,

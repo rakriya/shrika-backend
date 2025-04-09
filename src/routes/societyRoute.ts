@@ -7,6 +7,9 @@ import { commonUploader, validateAllFiles } from "../middlewares/multer";
 import { createMember } from "../controllers/memberController";
 import { memberCreateSchema } from "../joiSchemas/memberSchema";
 import { createRole } from "../controllers/roleController";
+import hasPermission from "../middlewares/hasPermission";
+import { checkSocietyMatch } from "../middlewares/checkSocietyMatch";
+import authenticate from "../middlewares/authenticate";
 
 const router = express.Router();
 
@@ -20,7 +23,14 @@ router.post(
 router.get("/", getAllSocieties);
 router.get("/:id", getSocietyById);
 
-router.post("/:societyId/members", validate(memberCreateSchema), createMember);
+router.post(
+  "/:societyId/members",
+  authenticate as RequestHandler,
+  checkSocietyMatch as RequestHandler,
+  hasPermission("create_member") as RequestHandler,
+  validate(memberCreateSchema),
+  createMember as RequestHandler,
+);
 router.post("/:societyId/roles", validate(roleCreationSchema), createRole);
 
 export default router;
