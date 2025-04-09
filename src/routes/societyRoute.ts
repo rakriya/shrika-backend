@@ -10,6 +10,7 @@ import { createRole } from "../controllers/roleController";
 import hasPermission from "../middlewares/hasPermission";
 import { checkSocietyMatch } from "../middlewares/checkSocietyMatch";
 import authenticate from "../middlewares/authenticate";
+import { requireDevTeamAccess } from "../middlewares/check";
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.post(
   validateAllFiles as unknown as RequestHandler,
   createSociety,
 );
-router.get("/", getAllSocieties);
+router.get("/", requireDevTeamAccess, getAllSocieties);
 router.get("/:id", getSocietyById);
 
 router.post(

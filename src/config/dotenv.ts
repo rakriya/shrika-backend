@@ -10,6 +10,8 @@ export const env = cleanEnv(process.env, {
     default: "development",
     choices: ["production", "development"],
   }),
+  SHRIKA_TEAM_ACCESS_TOKEN: str(),
+
   REDIS_HOST: str(),
   REDIS_PORT: port(),
   REDIS_PASSWORD: str(),
