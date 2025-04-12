@@ -20,6 +20,10 @@ export const env = cleanEnv(process.env, {
   TWILIO_AUTH_TOKEN: str(),
   TWILIO_PHONE_NUMBER: str(),
 
+  RAZORPAY_KEY_ID: str(),
+  RAZORPAY_KEY_SECRET: str(),
+  RAZORPAY_PLAN_ID: str(),
+
   PRIVATE_KEY: str(),
   PUBLIC_KEY: str(),
 

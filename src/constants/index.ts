@@ -51,6 +51,20 @@ const OTP_BODY = `Your OTP code is: $otp | This code is valid for $duration minu
 const COOKIE_REFRESH_TOKEN_NAME = "shrika-refresh-token";
 const COOKIE_ACCESS_TOKEN_NAME = "shrika-access-token";
 
+const TRAIL_LIMIT = 15; // days
+const MANDATE_EXPIRY_DAYS = 7; // days
+const SUBSCRIPTION_DURATION_MONTHS = 12 * 12; // days
+
+const SOCIETY_STATUS = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+  PRENDIG_SUBSCRIPTION: "pending_subscription",
+  TRAIL_PERIOD: "trail_period",
+  BLOCKED: "blocked",
+} as const;
+
+export type SocietyStatus = (typeof SOCIETY_STATUS)[keyof typeof SOCIETY_STATUS];
+
 export {
   ALLOWED_MIMETYPES,
   MAX_FILE_SIZE_LIMITS,
@@ -65,4 +79,8 @@ export {
   OTP_BODY,
   COOKIE_ACCESS_TOKEN_NAME,
   COOKIE_REFRESH_TOKEN_NAME,
+  TRAIL_LIMIT,
+  SUBSCRIPTION_DURATION_MONTHS,
+  MANDATE_EXPIRY_DAYS,
+  SOCIETY_STATUS,
 };

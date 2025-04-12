@@ -12,8 +12,10 @@ export const societySetupSchema = Joi.object({
 
   adminEmail: Joi.string()
     .email({ minDomainSegments: 3, tlds: { allow: ["com", "net", "in"] } })
+    .required()
     .messages({
       "string.email": "Please enter a valid email address.",
+      "string.empty": "Phone number is required.",
     }),
 
   adminPhoneNumber: Joi.string()

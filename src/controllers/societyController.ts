@@ -1,39 +1,11 @@
-import { ALLOWED_PERMISSIONS, SALT_ROUNDS } from "./../constants/index";
+import { ALLOWED_PERMISSIONS, SALT_ROUNDS, SOCIETY_STATUS } from "./../constants/index";
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import logger from "../config/logger";
 import createHttpError from "http-errors";
 import { getBcrypt } from "../config/bcrypt";
+import { createSubscription as createSocietyTrialSubscription } from "../services/subscriptionService";
 const prisma = new PrismaClient();
-
-export const createSociety = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name } = req.body;
-
-    // Validate input data
-    if (!name || name.trim() === "") {
-      return next(createHttpError(400, "All fields are required"));
-    }
-
-    // Check if society already exists
-    const societyExists = await prisma.society.findUnique({ where: { name } });
-    if (societyExists) {
-      return next(createHttpError(400, `Society already exists with name: ${name}`));
-    }
-
-    // Logic to create a new society in the database
-    const newSociety = await prisma.society.create({
-      data: {
-        name,
-      },
-    });
-
-    logger.info("Society created successfully", newSociety);
-    res.status(201).json({ message: "Society created successfully", newSociety });
-  } catch (error) {
-    return next(error);
-  }
-};
 
 export const getAllSocieties = async (req: Request, res: Response) => {
   try {
@@ -62,6 +34,7 @@ export const getSocietyById = async (req: Request, res: Response, next: NextFunc
 
 export const setupSociety = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // todo: verfy phone number and email
     const { societyName, adminName, adminPhone, adminEmail, adminPassword } = req.body;
 
     // Check for existing society
@@ -78,7 +51,7 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
 
     const result = await prisma.$transaction(async (tx) => {
       const newSociety = await tx.society.create({
-        data: { name: societyName },
+        data: { name: societyName, status: SOCIETY_STATUS.PRENDIG_SUBSCRIPTION },
       });
 
       const adminRole = await tx.role.create({
@@ -103,6 +76,30 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
       return { newSociety, firstMember };
     });
 
+    let newSubscription, razorpaySubscription;
+    try {
+      // Create Razorpay subscription with 15-day trial
+      const subscriptionResult = await createSocietyTrialSubscription(
+        result.firstMember.phoneNumber,
+        result.newSociety.id,
+        result.firstMember.email!,
+      );
+      newSubscription = subscriptionResult.newSubscription;
+      razorpaySubscription = subscriptionResult.razorpaySubscription;
+
+      // todo: send SMS/email with razorpaySubscription.short_url for mandate approval
+
+      // Update society to active if subscription was successful
+      await prisma.society.update({
+        where: { id: result.newSociety.id },
+        data: { status: SOCIETY_STATUS.TRAIL_PERIOD },
+      });
+    } catch (subscriptionError) {
+      return next(
+        createHttpError(500, "Subscription setup failed. Please try again.", { subscriptionError }),
+      );
+    }
+
     logger.info(`✅ Society setup complete for: ${result.newSociety.name}`);
 
     res.status(201).json({
@@ -110,6 +107,9 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
       society: {
         id: result.newSociety.id,
         name: result.newSociety.name,
+        subscriptionId: newSubscription.id,
+        razorpaySubscriptionId: razorpaySubscription.id,
+        mandateApprovalLink: razorpaySubscription.short_url,
       },
       admin: {
         id: result.firstMember.id,

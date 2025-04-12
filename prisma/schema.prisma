@@ -10,10 +10,30 @@ datasource db {
 model Society {
   id            String      @id @default(uuid())
   name          String      @unique
+  status        String      // 'active', 'inactive', 'pending_subscription', 'trail_period', 'blocked' etc.
   members       Member[]
   roles         Role[]
+  subscription  Subscription[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+model Subscription {
+  id                      String           @id @default(uuid())
+  planId                  String
+  societyId               String          
+  society                 Society          @relation(fields: [societyId], references: [id])
+  razorpaySubId           String           @unique
+  status                  String           // 'created', 'active', etc.
+  startDate               DateTime
+  endDate                 DateTime
+  nextBillingAt           DateTime
+  paidCount               Int              // Track the number of billing cycles paid
+  authAttempts            Int              // Track failed attempts to charge
+  customerId             String?           // Razorpay customer ID
+  paymentMethod          String?           // 'card', 'wallet', etc.
+  shortUrl               String?           // URL for authorization link
+  createdAt              DateTime         @default(now())
 }
 
 model Member {
@@ -55,3 +75,4 @@ model RefreshToken {
   member          Member        @relation(fields: [memberId], references: [id])
   memberId        String        @unique
 }
+
