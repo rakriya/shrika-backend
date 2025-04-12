@@ -19,7 +19,7 @@ import {
 } from "../services/tokenService";
 import env from "../config/dotenv";
 import { generateNormalizeIp } from "../utils/getNormalizeIp";
-import { IRefreshTokenParse } from "../types";
+import { IAuthRequest, IRefreshTokenParse } from "../types";
 
 export const loginMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -189,6 +189,84 @@ export const logout = async (req: IRefreshTokenParse, res: Response, next: NextF
     });
 
     res.json({});
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { phoneNumber, societyId, otp, password } = req.body;
+
+    const member = await prisma.member.findFirst({
+      where: { phoneNumber, societyId },
+    });
+    if (!member) {
+      return next(
+        createHttpError(404, `Member not found for phone number: ${phoneNumber}`, {
+          phoneNumber,
+          societyId,
+        }),
+      );
+    }
+
+    const foundOtp = await findOtp({
+      phoneNumber,
+      purpose: OTP_PURPOSE.FORGOT_PASSWORD,
+      societyId,
+    });
+    if (
+      !foundOtp ||
+      foundOtp.status === OTP_STATUS.USED ||
+      foundOtp.purpose !== OTP_PURPOSE.FORGOT_PASSWORD ||
+      foundOtp.otp !== otp
+    ) {
+      return next(createHttpError(400, "Invalid credentials or OTP"));
+    }
+    await updateOtpStatus({ phoneNumber, purpose: OTP_PURPOSE.FORGOT_PASSWORD, societyId });
+
+    const bcrypt = await getBcrypt();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.member.update({
+      where: { id: member.id },
+      data: { password: hashedPassword },
+    });
+
+    logger.info("Member password has been updated", {
+      id: member.id,
+      phoneNumber,
+      societyId,
+    });
+
+    res.json({ message: "Password has been updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// With loggedin user
+export const resetPassword = async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const memberId = req.member.id;
+
+    const bcrypt = await getBcrypt();
+    const isPasswordMatched = await bcrypt.compare(newPassword, oldPassword);
+    if (!isPasswordMatched) {
+      return next(createHttpError(400, `Wrong Credentials.`));
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.member.update({
+      where: { id: memberId },
+      data: { password: hashedPassword },
+    });
+
+    logger.info("Member password has been updated", {
+      id: memberId,
+    });
+    res.json({ message: "Password has been updated successfully" });
   } catch (error) {
     next(error);
   }

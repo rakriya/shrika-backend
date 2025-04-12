@@ -25,6 +25,7 @@ const SALT_ROUNDS = 10;
 const OTP_PURPOSE = {
   LOGIN: "login",
   RESET_PASSWORD: "reset_password",
+  FORGOT_PASSWORD: "forgot_password",
 } as const;
 
 const OTP_STATUS = {

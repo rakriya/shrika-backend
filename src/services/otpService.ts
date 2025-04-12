@@ -11,7 +11,14 @@ export const findOtp = async ({
   memberId?: string;
   societyId: string;
   purpose: OtpPurpose;
-}): Promise<{ otp: string; purpose: OtpPurpose; status: OtpStatus }> => {
+}): Promise<{
+  otp: string;
+  purpose: OtpPurpose;
+  status: OtpStatus;
+  phoneNumber: string;
+  societyId: string;
+  memberId: string;
+}> => {
   const key = `otp:${purpose}:${phoneNumber || memberId}:${societyId}`;
   const data = await redis.get(key);
 

@@ -34,6 +34,9 @@ export const createOtp = async (req: Request, res: Response, next: NextFunction)
     const value = JSON.stringify({
       otp,
       purpose,
+      phoneNumber,
+      societyId,
+      memberId: member.id,
       status: OTP_STATUS.UNUSED,
     });
     await redis.set(key, value, "EX", OTP_EXPIREY_IN_MINUTES * 60);
