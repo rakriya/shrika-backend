@@ -1,7 +1,9 @@
+import { ALLOWED_PERMISSIONS, SALT_ROUNDS } from "./../constants/index";
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import logger from "../config/logger";
 import createHttpError from "http-errors";
+import { getBcrypt } from "../config/bcrypt";
 const prisma = new PrismaClient();
 
 export const createSociety = async (req: Request, res: Response, next: NextFunction) => {
@@ -55,5 +57,68 @@ export const getSocietyById = async (req: Request, res: Response, next: NextFunc
     res.status(200).json(society);
   } catch (error) {
     res.status(500).json({ message: "Error fetching society", error });
+  }
+};
+
+export const setupSociety = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { societyName, adminName, adminPhone, adminEmail, adminPassword } = req.body;
+
+    // Check for existing society
+    const existingSociety = await prisma.society.findUnique({
+      where: { name: societyName },
+    });
+    if (existingSociety) {
+      return next(createHttpError(409, "Society name already taken."));
+    }
+
+    // Hash the admin password
+    const bcrypt = await getBcrypt();
+    const hashedPassword = await bcrypt.hash(adminPassword, SALT_ROUNDS);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const newSociety = await tx.society.create({
+        data: { name: societyName },
+      });
+
+      const adminRole = await tx.role.create({
+        data: {
+          name: "Super Admin",
+          permissions: [...ALLOWED_PERMISSIONS],
+          societyId: newSociety.id,
+        },
+      });
+
+      const firstMember = await tx.member.create({
+        data: {
+          name: adminName,
+          email: adminEmail,
+          phoneNumber: adminPhone,
+          password: hashedPassword,
+          roleId: adminRole.id,
+          societyId: newSociety.id,
+        },
+      });
+
+      return { newSociety, firstMember };
+    });
+
+    logger.info(`✅ Society setup complete for: ${result.newSociety.name}`);
+
+    res.status(201).json({
+      message: "Society setup successful",
+      society: {
+        id: result.newSociety.id,
+        name: result.newSociety.name,
+      },
+      admin: {
+        id: result.firstMember.id,
+        name: result.firstMember.name,
+        email: result.firstMember.email,
+        phoneNumber: result.firstMember.phoneNumber,
+      },
+    });
+  } catch (error) {
+    return next(error);
   }
 };

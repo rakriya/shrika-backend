@@ -1,7 +1,7 @@
 import { roleCreationSchema } from "./../joiSchemas/roleSchema";
 import express, { RequestHandler } from "express";
-import { createSociety, getAllSocieties, getSocietyById } from "../controllers/societyController";
-import { societyCreateSchema } from "../joiSchemas/societySchema";
+import { getAllSocieties, getSocietyById, setupSociety } from "../controllers/societyController";
+import { societySetupSchema } from "../joiSchemas/societySchema";
 import { validate } from "../middlewares/validate";
 import { commonUploader, validateAllFiles } from "../middlewares/multer";
 import { createMember } from "../controllers/memberController";
@@ -16,10 +16,10 @@ const router = express.Router();
 
 router.post(
   "/",
-  validate(societyCreateSchema),
+  validate(societySetupSchema),
   commonUploader("single", "logo", 1),
   validateAllFiles as unknown as RequestHandler,
-  createSociety,
+  setupSociety,
 );
 router.get("/", requireDevTeamAccess, getAllSocieties);
 router.get("/:id", getSocietyById);
