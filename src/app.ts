@@ -6,6 +6,8 @@ import otpRoute from "./routes/otpRoute";
 import logger from "./config/logger";
 import { HttpError } from "http-errors";
 import cookieParser from "cookie-parser";
+import webhookRouter from "./routes/webhookRoute";
+import subscriptionRoutes from "./routes/subscription";
 
 process.on("uncaughtException", (err) => {
   logger.error(`Uncaught Exception: ${err.message}`);
@@ -27,6 +29,8 @@ app.use(cookieParser());
 app.use("/api/v1/societies", societyRoutes);
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/otp", otpRoute);
+app.use("/api/v1/subscription", subscriptionRoutes);
+app.use("/api/v1/webhook", webhookRouter);
 
 // Routes
 app.get("/", async (_req, res) => {

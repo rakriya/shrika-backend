@@ -23,6 +23,7 @@ export const env = cleanEnv(process.env, {
   RAZORPAY_KEY_ID: str(),
   RAZORPAY_KEY_SECRET: str(),
   RAZORPAY_PLAN_ID: str(),
+  RAZORPAY_WEBHOOK_SECRET: str(),
 
   PRIVATE_KEY: str(),
   PUBLIC_KEY: str(),

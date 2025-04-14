@@ -52,18 +52,39 @@ const COOKIE_REFRESH_TOKEN_NAME = "shrika-refresh-token";
 const COOKIE_ACCESS_TOKEN_NAME = "shrika-access-token";
 
 const TRAIL_LIMIT = 15; // days
+const GRACE_PERIOD_DAYS = 7; // days
 const MANDATE_EXPIRY_DAYS = 7; // days
 const SUBSCRIPTION_DURATION_MONTHS = 12 * 12; // days
 
 const SOCIETY_STATUS = {
+  CREATED: "created",
+  TRAIL: "trail",
+  SUBSCRIPTION_FAILED: "subscription_failed",
   ACTIVE: "active",
   INACTIVE: "inactive",
-  PRENDIG_SUBSCRIPTION: "pending_subscription",
-  TRAIL_PERIOD: "trail_period",
+  GRACE: "grace",
   BLOCKED: "blocked",
 } as const;
 
+const SUBSCRIPTION_STATUS = {
+  CREATED: "created",
+  AUTHENTICATED: "authenticated",
+  ACTIVE: "active",
+  HALTED: "halted",
+  CANCELLED: "cancelled",
+  COMPLETED: "completed",
+  EXPIRED: "expired",
+} as const;
+
+const SUBSCRIPTION_PAYMENT_STATUS = {
+  SUCCESS: "success",
+  FAILED: "failed",
+} as const;
+
 export type SocietyStatus = (typeof SOCIETY_STATUS)[keyof typeof SOCIETY_STATUS];
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS];
+export type SubscriptionPaymentStatus =
+  (typeof SUBSCRIPTION_PAYMENT_STATUS)[keyof typeof SUBSCRIPTION_PAYMENT_STATUS];
 
 export {
   ALLOWED_MIMETYPES,
@@ -83,4 +104,7 @@ export {
   SUBSCRIPTION_DURATION_MONTHS,
   MANDATE_EXPIRY_DAYS,
   SOCIETY_STATUS,
+  SUBSCRIPTION_STATUS,
+  SUBSCRIPTION_PAYMENT_STATUS,
+  GRACE_PERIOD_DAYS,
 };

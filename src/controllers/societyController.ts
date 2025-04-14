@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import logger from "../config/logger";
 import createHttpError from "http-errors";
 import { getBcrypt } from "../config/bcrypt";
-import { createSubscription as createSocietyTrialSubscription } from "../services/subscriptionService";
+import { createRazorpaySubscriptionAndSave as createSocietyTrialSubscription } from "../services/subscriptionService";
 const prisma = new PrismaClient();
 
 export const getAllSocieties = async (req: Request, res: Response) => {
@@ -51,7 +51,7 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
 
     const result = await prisma.$transaction(async (tx) => {
       const newSociety = await tx.society.create({
-        data: { name: societyName, status: SOCIETY_STATUS.PRENDIG_SUBSCRIPTION },
+        data: { name: societyName, status: SOCIETY_STATUS.CREATED },
       });
 
       const adminRole = await tx.role.create({
@@ -78,23 +78,22 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
 
     let newSubscription, razorpaySubscription;
     try {
-      // Create Razorpay subscription with 15-day trial
-      const subscriptionResult = await createSocietyTrialSubscription(
-        result.firstMember.phoneNumber,
-        result.newSociety.id,
-        result.firstMember.email!,
-      );
+      // Create Razorpay subscription with trial
+      const subscriptionResult = await createSocietyTrialSubscription({
+        phoneNumber: result.firstMember.phoneNumber,
+        email: result.firstMember.email!,
+        societyId: result.newSociety.id,
+        trail: true,
+      });
       newSubscription = subscriptionResult.newSubscription;
       razorpaySubscription = subscriptionResult.razorpaySubscription;
 
       // todo: send SMS/email with razorpaySubscription.short_url for mandate approval
-
-      // Update society to active if subscription was successful
+    } catch (subscriptionError) {
       await prisma.society.update({
         where: { id: result.newSociety.id },
-        data: { status: SOCIETY_STATUS.TRAIL_PERIOD },
+        data: { status: SOCIETY_STATUS.SUBSCRIPTION_FAILED },
       });
-    } catch (subscriptionError) {
       return next(
         createHttpError(500, "Subscription setup failed. Please try again.", { subscriptionError }),
       );

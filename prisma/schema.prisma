@@ -10,7 +10,10 @@ datasource db {
 model Society {
   id            String      @id @default(uuid())
   name          String      @unique
-  status        String      // 'active', 'inactive', 'pending_subscription', 'trail_period', 'blocked' etc.
+  status        String      // created | trial | subscription_failed | active | grace | inactive | blocked
+  isTrialUsed   Boolean     @default(false) // Track if the subscription is a trial
+  trialEndDate  DateTime?   // Track the end date of the trial period
+  graceUntil    DateTime?   // Track the grace period end date  
   members       Member[]
   roles         Role[]
   subscription  Subscription[]
@@ -21,19 +24,35 @@ model Society {
 model Subscription {
   id                      String           @id @default(uuid())
   planId                  String
+  phoneNumber             String      
+  email                   String   
   societyId               String          
   society                 Society          @relation(fields: [societyId], references: [id])
   razorpaySubId           String           @unique
-  status                  String           // 'created', 'active', etc.
-  startDate               DateTime
-  endDate                 DateTime
-  nextBillingAt           DateTime
+  status                  String           // trail | active | cancelled | failed | completed | paused
+  startDate               DateTime         // Track the start date of the subscription
+  endDate                 DateTime         // Track the end date of the subscription
+  previousBillingAt       DateTime?        // Track the last billing date
+  nextBillingAt           DateTime         // Track the next billing date
   paidCount               Int              // Track the number of billing cycles paid
   authAttempts            Int              // Track failed attempts to charge
   customerId             String?           // Razorpay customer ID
-  paymentMethod          String?           // 'card', 'wallet', etc.
   shortUrl               String?           // URL for authorization link
+  subscriptionPayment    SubscriptionPayment[]      // Link to the payment record
   createdAt              DateTime         @default(now())
+}
+
+model SubscriptionPayment {
+  id                          String          @id @default(uuid())
+  subscriptionId              String
+  subscription                Subscription    @relation(fields: [subscriptionId], references: [id])
+  razorpayPaymentId           String          @unique
+  amount                      Float
+  status                      String          // success, failed
+  paymentDate                 DateTime       
+  paymentMethod               String          // 'card', 'wallet', etc.
+  paymentBillingCycleCount    Int             // Billing cycle number
+  createdAt                   DateTime        @default(now())
 }
 
 model Member {

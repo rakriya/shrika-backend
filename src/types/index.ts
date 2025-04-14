@@ -8,3 +8,7 @@ export interface IAuthRequest extends Request {
 export interface IRefreshTokenParse extends Request {
   refreshTokenEntity: RefreshToken;
 }
+
+export interface IRazorpayRequest extends Request {
+  razorpay: { eventId: string };
+}
