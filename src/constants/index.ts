@@ -51,14 +51,14 @@ const OTP_BODY = `Your OTP code is: $otp | This code is valid for $duration minu
 const COOKIE_REFRESH_TOKEN_NAME = "shrika-refresh-token";
 const COOKIE_ACCESS_TOKEN_NAME = "shrika-access-token";
 
-const TRAIL_LIMIT = 15; // days
+const TRIAL_LIMIT = 15; // days
 const GRACE_PERIOD_DAYS = 7; // days
 const MANDATE_EXPIRY_DAYS = 7; // days
 const SUBSCRIPTION_DURATION_MONTHS = 12 * 12; // days
 
 const SOCIETY_STATUS = {
   CREATED: "created",
-  TRAIL: "trail",
+  TRIAL: "trial",
   SUBSCRIPTION_FAILED: "subscription_failed",
   ACTIVE: "active",
   INACTIVE: "inactive",
@@ -86,6 +86,8 @@ export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSC
 export type SubscriptionPaymentStatus =
   (typeof SUBSCRIPTION_PAYMENT_STATUS)[keyof typeof SUBSCRIPTION_PAYMENT_STATUS];
 
+const REDIS_RAZORPAY_EVENTID_EXPIRE_SECONDS = 60 * 60 * 24 * 7;
+
 export {
   ALLOWED_MIMETYPES,
   MAX_FILE_SIZE_LIMITS,
@@ -100,11 +102,12 @@ export {
   OTP_BODY,
   COOKIE_ACCESS_TOKEN_NAME,
   COOKIE_REFRESH_TOKEN_NAME,
-  TRAIL_LIMIT,
+  TRIAL_LIMIT,
   SUBSCRIPTION_DURATION_MONTHS,
   MANDATE_EXPIRY_DAYS,
   SOCIETY_STATUS,
   SUBSCRIPTION_STATUS,
   SUBSCRIPTION_PAYMENT_STATUS,
   GRACE_PERIOD_DAYS,
+  REDIS_RAZORPAY_EVENTID_EXPIRE_SECONDS,
 };

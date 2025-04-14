@@ -5,6 +5,7 @@ import logger from "../config/logger";
 import redis from "../config/redis";
 import env from "../config/dotenv";
 import { IRazorpayRequest } from "../types";
+import { REDIS_RAZORPAY_EVENTID_EXPIRE_SECONDS } from "../constants";
 
 export const razorpayIdempotency = async (
   req: IRazorpayRequest,
@@ -18,7 +19,13 @@ export const razorpayIdempotency = async (
   }
 
   try {
-    const setResult = await redis.set(`razorpay:${eventId}`, "processed", "EX", 60 * 60 * 24, "NX");
+    const setResult = await redis.set(
+      `razorpay:${eventId}`,
+      "processed",
+      "EX",
+      REDIS_RAZORPAY_EVENTID_EXPIRE_SECONDS,
+      "NX",
+    );
 
     if (!setResult) {
       logger.info(`Duplicate event received. Skipping: ${eventId}`);
