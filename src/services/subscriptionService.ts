@@ -9,7 +9,7 @@ import { addDays, getUnixTime } from "date-fns";
 import env from "../config/dotenv";
 import prisma from "../config/prisma";
 import razorpayInstance from "../config/razorpay";
-import { SUBSCRIPTION_DURATION_MONTHS, TRAIL_LIMIT, MANDATE_EXPIRY_DAYS } from "../constants";
+import { SUBSCRIPTION_DURATION_MONTHS, TRIAL_LIMIT, MANDATE_EXPIRY_DAYS } from "../constants";
 import createHttpError from "http-errors";
 import logger from "../config/logger";
 
@@ -18,7 +18,7 @@ type CreateSubscriptionParams = {
   phoneNumber: string;
   email: string;
   societyId: string;
-  trail?: boolean;
+  trial?: boolean;
   notes?: Record<string, any>;
 };
 
@@ -26,10 +26,10 @@ export const createRazorpaySubscriptionAndSave = async ({
   phoneNumber,
   email,
   societyId,
-  trail = false,
+  trial = false,
   notes = {},
 }: CreateSubscriptionParams) => {
-  const start_at = trail ? getUnixTime(addDays(new Date(), TRAIL_LIMIT)) : getUnixTime(new Date());
+  const start_at = trial ? getUnixTime(addDays(new Date(), TRIAL_LIMIT)) : getUnixTime(new Date());
 
   const razorpaySub = await razorpayInstance.subscriptions.create({
     plan_id: env.RAZORPAY_PLAN_ID,
@@ -115,7 +115,7 @@ export const handleSubscriptionAuthenticated = async (payload: {
         await tx.society.update({
           where: { id: subscription.societyId },
           data: {
-            status: SOCIETY_STATUS.TRAIL,
+            status: SOCIETY_STATUS.TRIAL,
             isTrialUsed: true,
             trialEndDate: new Date(razorpaySub.start_at * 1000), // Set trial end date
           },
@@ -127,7 +127,7 @@ export const handleSubscriptionAuthenticated = async (payload: {
       event: "subscription.authenticated",
       subscriptionId: subscription.id,
     });
-    // TODO: send email to user for trail and subscription confirmation
+    // TODO: send email to user for TRIAL and subscription confirmation
   } catch (error) {
     throw createHttpError(500, "Error handling subscription authenticated event", {
       event: "subscription.authenticated",

@@ -29,7 +29,7 @@ model Subscription {
   societyId               String          
   society                 Society          @relation(fields: [societyId], references: [id])
   razorpaySubId           String           @unique
-  status                  String           // trail | active | cancelled | failed | completed | paused
+  status                  String           // trial | active | cancelled | failed | completed | paused
   startDate               DateTime         // Track the start date of the subscription
   endDate                 DateTime         // Track the end date of the subscription
   previousBillingAt       DateTime?        // Track the last billing date

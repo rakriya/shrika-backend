@@ -83,7 +83,7 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
         phoneNumber: result.firstMember.phoneNumber,
         email: result.firstMember.email!,
         societyId: result.newSociety.id,
-        trail: true,
+        trial: true,
       });
       newSubscription = subscriptionResult.newSubscription;
       razorpaySubscription = subscriptionResult.razorpaySubscription;
