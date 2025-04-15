@@ -5,6 +5,8 @@ import logger from "../config/logger";
 import createHttpError from "http-errors";
 import { getBcrypt } from "../config/bcrypt";
 import { createRazorpaySubscriptionAndSave as createSocietyTrialSubscription } from "../services/subscriptionService";
+import { sendEmail } from "../utils/sendEmail";
+import { societySetupComplete } from "../emailTemplate/societySetupComplete";
 const prisma = new PrismaClient();
 
 export const getAllSocieties = async (req: Request, res: Response) => {
@@ -36,6 +38,10 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
   try {
     // todo: verfy phone number and email
     const { societyName, adminName, adminPhone, adminEmail, adminPassword } = req.body;
+
+    if (!adminEmail) {
+      return next(createHttpError(400, "Admin email is required."));
+    }
 
     // Check for existing society
     const existingSociety = await prisma.society.findUnique({
@@ -87,8 +93,6 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
       });
       newSubscription = subscriptionResult.newSubscription;
       razorpaySubscription = subscriptionResult.razorpaySubscription;
-
-      // todo: send SMS/email with razorpaySubscription.short_url for mandate approval
     } catch (subscriptionError) {
       await prisma.society.update({
         where: { id: result.newSociety.id },
@@ -98,6 +102,17 @@ export const setupSociety = async (req: Request, res: Response, next: NextFuncti
         createHttpError(500, "Subscription setup failed. Please try again.", { subscriptionError }),
       );
     }
+
+    const { html, subject } = societySetupComplete({
+      userName: result.firstMember.name,
+      razorpayLink: razorpaySubscription.short_url,
+    });
+
+    await sendEmail({
+      to: result.firstMember.email!,
+      subject,
+      html,
+    });
 
     logger.info(`✅ Society setup complete for: ${result.newSociety.name}`);
 

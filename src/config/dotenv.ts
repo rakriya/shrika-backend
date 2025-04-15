@@ -32,6 +32,11 @@ export const env = cleanEnv(process.env, {
   ACCESS_TOKEN_EXPIRY_MINUTES: num(),
   REFRESH_TOKEN_EXPIRY_DAYS: num(),
   REFRESH_JWT_SECRET_KEY: str(),
+
+  GOOGLE_REFRESH_TOKEN: str(),
+  GOOGLE_CLIENT_ID: str(),
+  GOOGLE_CLIENT_SECRET: str(),
+  GOOGLE_GMAIL_USER: str(),
 });
 
 export default env;
